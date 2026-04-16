@@ -1,4 +1,4 @@
-# LLM RAG Practice
+# RAG Practice
 
 >  RAG练习项目 | 从0到1搭建RAG系统
 
