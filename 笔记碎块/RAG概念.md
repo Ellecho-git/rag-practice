@@ -1,8 +1,8 @@
 <img width="1241" height="726" alt="image" src="https://github.com/user-attachments/assets/61d33c0e-9413-4f07-89ff-a9e2d7d29465" />
 
-## RAG流程：
+## RAG概念：
 
-RAG可以分成两条线，一条是数据准备，一条是在线推理。
+RAG整体分成两条线，一条是数据准备，一条是在线推理。
 
 数据准备：简单说就是先把原始文档切成一堆小片段，然后用Embedding模型把这些片段转成向量，存到向量数据库里备用。这个过程只需要做一次，相当于建索引。
 
