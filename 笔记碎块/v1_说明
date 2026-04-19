@@ -1,0 +1,157 @@
+# v1说明书
+
+## v1简介
+
+这是一个基于**检索增强生成（RAG）** 技术的问答系统。用户上传文档后，系统能够根据文档内容回答用户问题，并标注答案来源。
+
+**核心能力**：根据文档回答问题 + 标注引用来源
+
+**技术栈**：
+
+| 模块 | 技术 |
+|------|------|
+| 大模型 | DeepSeek API |
+| 向量化（Embedding） | BAAI/bge-small-zh-v1.5（本地运行） |
+| 向量数据库 | Chroma |
+| 文档加载 | LangChain TextLoader |
+| 文本切分 | LangChain RecursiveCharacterTextSplitter |
+| 开发语言 | Python |
+
+---
+
+## 代码解释
+
+### 1. 加载文档
+
+```python
+loader = TextLoader("data/test.txt", encoding="utf-8")
+documents = loader.load()
+```
+
+- 把 txt 文件读进内存，得到一个 Document 对象列表
+- 坑：编码问题 → 指定 encoding="utf-8"
+
+### 2. 切分文档
+
+```python
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50
+)
+chunks = text_splitter.split_documents(documents)
+```
+
+- `chunk_size=500`：每个片段最多500字符
+- `chunk_overlap=50`：相邻片段重叠50字符，防止切断关键信息
+- 坑：切分太细丢语义，太粗引入噪声 → 需要根据文档调整
+
+### 3. 向量化（Embedding）
+
+```python
+embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-small-zh-v1.5")
+```
+
+- 把文本转成768维向量，用于计算相似度
+- 为什么选这个模型：中文效果好、免费、本地运行
+- 坑：第一次运行会自动下载模型（约100MB），需要耐心等待
+
+### 4. 存储到向量库
+
+```python
+vectorstore = Chroma.from_documents(documents=chunks, embedding=embeddings)
+```
+
+- 把向量+原文存到 Chroma 数据库
+- Chroma 是轻量级向量数据库，不需要单独安装服务器
+
+### 5. 检索相关片段
+
+```python
+retriever = vectorstore.as_retriever()
+retrieved_docs = retriever.invoke("请假需要提前几天申请？")
+```
+
+- 把用户问题转成向量，去库里找最相似的 chunk
+- 默认返回 Top-4 个片段
+
+### 6. 生成答案
+
+```python
+prompt = ChatPromptTemplate.from_template("""
+请根据以下参考资料回答用户问题...
+
+参考资料：{context}
+用户问题：{input}
+""")
+
+context = "\n\n".join([doc.page_content for doc in retrieved_docs])
+formatted_prompt = prompt.format(context=context, input="...")
+response = llm.invoke(formatted_prompt)
+```
+
+- 把检索到的资料和用户问题拼成完整 Prompt
+- 发给 DeepSeek 生成答案
+- 坑：不加约束模型会瞎编 → 加了"如果没有相关信息就说不知道"
+
+---
+
+## 踩坑记录
+
+| 问题 | 原因 | 解决方案 |
+|------|------|----------|
+| ModuleNotFoundError: No module named 'dotenv' | 没装包 | pip install python-dotenv |
+| ModuleNotFoundError: No module named 'langchain.document_loaders' | LangChain 版本更新，模块位置变了 | 改用 langchain_community.document_loaders |
+| ImportError: cannot import name 'DeepSeekEmbeddings' | langchain-deepseek 包没有这个类 | 改用 HuggingFaceEmbeddings |
+| FileNotFoundError: data/test.txt | 运行目录不对 | 用绝对路径或 os.path.join() |
+| Error code: 402 - Insufficient Balance | DeepSeek 余额不足 | 充值或换免费方案 |
+| .env 被上传到 GitHub | 忘记加 .gitignore | 立即删除，换新 API Key |
+
+---
+
+## 知识点
+
+| 概念 | 解释 |
+|------|------------|
+| RAG | 先检索资料，再让模型基于资料回答，解决幻觉问题 |
+| Chunk | 文档切分后的小片段，让检索更精准 |
+| Embedding | 把文字转成向量，用于计算相似度 |
+| 向量数据库 | 专门存向量、找相似的数据库（如 Chroma） |
+| 相似度检索 | 问题向量和文档向量做余弦相似度计算，找最接近的 |
+| Prompt 模板 | 约束模型回答格式，加拒答逻辑 |
+
+---
+
+## 后续优化方向
+
+| 优化项 | 作用 | 状态 |
+|--------|------|------|
+| 混合检索（BM25+向量） | 提升专有名词检索准确率 | 待做 |
+| 重排序（Rerank） | 提升答案准确率 | 待做 |
+| 拒答机制 | 降低幻觉 | 已做（Prompt 里加了约束） |
+| 评测体系 | 量化系统效果 | 待做 |
+| FastAPI 封装 | 提供 HTTP 接口 | 待做 |
+
+---
+
+## v1总结
+
+这一代实现了 RAG 的核心流程：
+
+**文档 → 切块 → 向量化 → 存库 → 提问 → 检索 → 生成 → 回答**
+
+- 代码量：约 60 行
+- 核心价值：跑通了完整链路，踩过了常见坑，为后续优化打下了基础
+- 下一步：加混合检索 + 重排序，把准确率提上去
+
+---
+
+## 附录：环境要求
+
+| 依赖 | 版本 |
+|------|------|
+| Python | 3.10+ |
+| langchain | 1.2.15 |
+| langchain-community | 0.3.0+ |
+| langchain-chroma | 1.1.0 |
+| langchain-deepseek | 1.0.1 |
+| sentence-transformers | 2.2.0+ |
