@@ -7,7 +7,12 @@ from langchain_deepseek import ChatDeepSeek
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
 
+import warnings
+warnings.filterwarnings("ignore")
+
 load_dotenv()
+
+question = "ABC-X1 和 ABC-X2 有什么区别？"
 
 # 大模型
 llm = ChatDeepSeek(
@@ -19,9 +24,9 @@ llm = ChatDeepSeek(
 # Embedding
 embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-small-zh-v1.5")
 
-# 获取文件路径（解决路径问题）
+# 获取文件路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(current_dir, "..", "data", "test.txt")
+file_path = os.path.join(current_dir, "..", "data", "test_hybrid.txt")
 
 # 1. 加载文档
 loader = TextLoader(file_path, encoding="utf-8")
@@ -47,14 +52,15 @@ prompt = ChatPromptTemplate.from_template("""
 用户问题：{input}
 """)
 
-# 手动构建 RAG 链
-retrieved_docs = retriever.invoke("请假需要提前几天申请？")
+# 手动构建 RAG 链（使用同一个 question 变量）
+retrieved_docs = retriever.invoke(question)
 context = "\n\n".join([doc.page_content for doc in retrieved_docs])
-formatted_prompt = prompt.format(context=context, input="请假需要提前几天申请？")
+formatted_prompt = prompt.format(context=context, input=question)
 response = llm.invoke(formatted_prompt)
 
+# 输出结果（也使用同一个 question 变量）
 print("=" * 50)
-print("问题: 请假需要提前几天申请？")
+print(f"问题: {question}")
 print("-" * 50)
 print(f"答案: {response.content}")
 print("-" * 50)
