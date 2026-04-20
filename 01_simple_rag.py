@@ -26,7 +26,7 @@ embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-small-zh-v1.5")
 
 # 获取文件路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(current_dir, "..", "data", "test_hybrid.txt")
+file_path = os.path.join(current_dir, "", "data", "test_hybrid.txt")
 
 # 1. 加载文档
 loader = TextLoader(file_path, encoding="utf-8")
