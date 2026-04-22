@@ -20,6 +20,12 @@
 
 ---
 
+## FastAPI 自动生成的 API 文档页面
+- 启动服务后访问 /docs 路径，FastAPI 会自动生成这个交互式文档页面。可以直接在页面上测试 /ask 接口，无需额外工具。
+![img_3.png](img_3.png)
+![img_4.png](img_4.png)
+---
+
 ## 为什么需要 FastAPI 封装？
 
 | 对比 | 命令行脚本（v1/v2/v3） | FastAPI 服务 |
