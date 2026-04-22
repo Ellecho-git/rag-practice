@@ -14,9 +14,8 @@ warnings.filterwarnings("ignore")
 
 load_dotenv()
 
-# ========== 统一的问题入口 ==========
+# 问题入口
 question = "ABC-X1 和 ABC-X2 有什么区别？"
-# ==================================
 
 # 1. 初始化大模型
 llm = ChatDeepSeek(
