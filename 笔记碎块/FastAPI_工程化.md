@@ -1,6 +1,6 @@
 # FastAPI 工程化说明书
 
-## FastAPI简介
+## FastAPI 简介
 
 将 v3 的 RAG 系统（混合检索 + 重排序）封装成 RESTful API 服务，其他程序可以通过 HTTP 请求调用问答功能。
 
