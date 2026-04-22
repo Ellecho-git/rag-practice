@@ -33,17 +33,19 @@
 ---
 
 ## 📁 项目结构
-
+```
 rag-practice/
 ├── data/ # 测试文档
 ├── docs/ # 版本说明书
+├── .env # API Key
 ├── 01_simple_rag.py # v1 基础向量检索
 ├── 02_hybrid_retriever.py # v2 混合检索
 ├── 03_reranker.py # v3 重排序
 ├── api_server.py # FastAPI 服务
-├── requirements.txt # 依赖列表
-├── .env # API Key
-└── README.md
+├── LICENSE.MD
+├── README.md
+└── requirements.txt # 依赖列表
+```
 
 ---
 
