@@ -140,5 +140,5 @@ print(f"答案: {response.content}")
 print("-" * 50)
 print(f"加权混合检索召回: 共找到 {len(retrieved_docs)} 个相关片段")
 
-# 可选：打印对比结果（调试用，正式运行可注释掉）
+# 打印对比结果
 # print_retrieval_comparison(question)
